@@ -70,9 +70,9 @@ namespace TLauncher {
 
             HandleRef href = new HandleRef(null, Handler);
             SendMessage(href, WM_SETTEXT, IntPtr.Zero, Translation);
-
+#if DEBUG
             Console.WriteLine("Text Translated from \"{0}\" to \"{1}\"", Text, Translation);
-
+#endif
             return true;
         }
         private static void ReplaceMenu(IntPtr Handler) {
@@ -104,9 +104,10 @@ namespace TLauncher {
                 MenuInfo.dwTypeData = Translation;
 
                 Sucess = SetMenuItemInfo(Handler, i, true, ref MenuInfo);
-
+#if DEBUG
                 if (Sucess)
                     Console.WriteLine("Text Translated: {0}", Text);
+#endif
             }
         }
     }

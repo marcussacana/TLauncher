@@ -38,6 +38,12 @@ namespace TLauncher {
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool SetMenuItemInfo(IntPtr hMenu, int uItem, bool fByPosition, [In] ref MENUITEMINFO lpmii);
 
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetConsoleWindow();
+
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct MENUITEMINFO {
@@ -73,6 +79,8 @@ namespace TLauncher {
         public const uint MIIM_STRING = 0x00000040;
         public const uint MFT_STRING = 0x00000000;
         public const uint MIIM_SUBMENU = 0x00000004;
+        public const int SW_HIDE = 0;
+        public const int SW_SHOW = 5;
 
 
 

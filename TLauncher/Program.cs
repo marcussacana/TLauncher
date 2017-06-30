@@ -6,6 +6,10 @@ namespace TLauncher {
         static void Main(string[] args) {
             Console.Title = "TLauncher - By Marcussacana";
             if (File.Exists(Common.Setup)) {
+#if !DEBUG
+                IntPtr Handle = Unmanaged.GetConsoleWindow();
+                Unmanaged.ShowWindow(Handle, Unmanaged.SW_HIDE);
+#endif
                 Replacer.InitializeHook(args);
                 return;
             }
