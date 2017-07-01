@@ -11,27 +11,36 @@ using static TLauncher.Unmanaged;
 namespace TLauncher {
     internal static class Dumper {
         internal static void SetupLauncher(string[] Args) {
-            Console.WriteLine("Write the Executable Name:");
-            string Exe = Console.ReadLine();
+            if (Texts.Count == 0) {
+                Console.WriteLine("Write the Executable Name:");
+                Exe = Console.ReadLine();
 
-            Console.WriteLine("Write delay to find for new text in ms:");
-            int Delay = int.Parse(Console.ReadLine());
+                Console.WriteLine("Write delay to find for new text in ms:");
+                Delay = int.Parse(Console.ReadLine());
+
+                Console.WriteLine("You Want Invalidate the game window when translate something? Y/N");
+                Console.WriteLine("(Can increase the CPU/GPU usage if the window change the text constantly.)");
+                Invalidate = Console.ReadKey().KeyChar.ToString().ToUpper()[0] == 'Y';
+            }
 
             Console.WriteLine("Initializing Executable...");
             ProgProc = new Process() {
                 StartInfo = new ProcessStartInfo() {
                     Arguments = ParseArguments(Args),
-                    FileName = AppDomain.CurrentDomain.BaseDirectory + Exe
+                    FileName = AppDomain.CurrentDomain.BaseDirectory + Exe,
+                    WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
                 }
             };
+
             Console.WriteLine("Initializing Hook...");
             HookEnabler();
-
             Console.WriteLine("Dumping Text...");
+
             StreamWriter Writer = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", false, Encoding.Unicode);
 
-            foreach (string str in Texts) {
-                string line = str;
+            for (int i = 0; i < Texts.Count(); i++) {
+                string line = Tls.Count != 0 && i < Tls.Count ? Tls[i] : Texts[i];
+
                 Encode(ref line, true);
                 Writer.WriteLine(line);
             }
@@ -43,22 +52,24 @@ namespace TLauncher {
             Console.ReadKey();
             Console.WriteLine("Reading Translation...");
 
+            Tls = new List<string>();
+
             TextReader Reader = new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", Encoding.Unicode);
-            List<string> Tls = new List<string>();
 
+            int ID = -1;
             while (Reader.Peek() != -1) {
-                string line = Reader.ReadLine();
-                Encode(ref line, false);
+                string Line = Reader.ReadLine();
+                Encode(ref Line, false);
 
-                int ID = Tls.Count;
-                if (ID == Texts.Count)
+                if (++ID >= Texts.Count)
                     continue;
-                if (string.IsNullOrWhiteSpace(line) || line.Trim().ToLower() == ":ignore:") {
-                    Texts.RemoveAt(ID);
+                if (string.IsNullOrWhiteSpace(Line) || Line.Trim().ToLower() == ":ignore:") {
+                    Texts.RemoveAt(ID--);
                     continue;
                 }
-                Tls.Add(line);
+                Tls.Add(Line);
             }
+
             Reader.Close();
 
             Console.WriteLine("Generating Configuration...");
@@ -67,12 +78,14 @@ namespace TLauncher {
                 Signature = "TLLD",
                 Executable = Exe,
                 Strings = Texts.ToArray(),
-                TLs = Tls.ToArray()
+                TLs = Tls.ToArray(),
+                Delay = Delay,
+                Invalidate = (byte)(Invalidate ? 1 : 0)
             };
 
             Console.WriteLine("Saving Configuration...");
 
-            StructWriter Output = new StructWriter(Setup, false, Encoding.UTF8);
+            StructWriter Output = new StructWriter(Setup);
             Output.WriteStruct(ref LauncherData);
             Output.Close();
 
@@ -82,7 +95,6 @@ namespace TLauncher {
 
         private static void HookEnabler() {
             ProgProc.Start();
-            Texts = new List<string>();
 
             Console.WriteLine("Waiting Main Window Open...");
 
@@ -125,7 +137,7 @@ namespace TLauncher {
                 if (MenuInfo.hSubMenu != IntPtr.Zero)
                     DumpMenu(MenuInfo.hSubMenu);
 
-                if (Texts.Contains(Text) || string.IsNullOrWhiteSpace(Text) || !Sucess)
+                if (Texts.Contains(Text) || string.IsNullOrWhiteSpace(Text))
                     continue;
 
                 Texts.Add(Text);
@@ -134,7 +146,12 @@ namespace TLauncher {
             }
         }
 
-        static List<string> Texts;
+        internal static List<string> Texts = new List<string>();
+        internal static string Exe;
+        internal static int Delay;
+        internal static List<string> Tls = new List<string>();
+        internal static bool Invalidate;
+
         private static bool Dump(IntPtr Handler, int Paramters) {
             int Len = GetWindowTextLength(Handler);
             StringBuilder sb = new StringBuilder(Len + 1);
@@ -146,13 +163,12 @@ namespace TLauncher {
                 var CB = new CallBack(Dump);
                 EnumChildWindows(Handler, CB, IntPtr.Zero);
             }
-            if (Texts.Contains(Text) || PID != ProgProc.Id)
+            if (Texts.Contains(Text) || string.IsNullOrWhiteSpace(Text) || PID != ProgProc.Id)
                 return true;
 
             Texts.Add(Text);
 
             Console.WriteLine("Text Hooked: {0}", Text);
-
             return true;
         }
 

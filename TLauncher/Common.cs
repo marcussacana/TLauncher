@@ -9,13 +9,14 @@ namespace TLauncher {
 
         internal static string ParseArguments(string[] Args) {
             string CommandLine = string.Empty;
-            foreach (string arg in Args) {
-                if (arg.Contains(" "))
-                    CommandLine += string.Format("\"{0}\"", arg);
-                else
-                    CommandLine += arg;
-                CommandLine += ' ';
-            }
+            if (Args != null)
+                foreach (string arg in Args) {
+                    if (arg.Contains(" "))
+                        CommandLine += string.Format("\"{0}\"", arg);
+                    else
+                        CommandLine += arg;
+                    CommandLine += ' ';
+                }
             return CommandLine.TrimEnd();
         }
         internal static void Encode(ref string[] Strings, bool Enable) {
@@ -76,6 +77,8 @@ namespace TLauncher {
             public string Signature;
 
             public int Delay;
+
+            public byte Invalidate;
 
             [CString()]
             public string Executable;

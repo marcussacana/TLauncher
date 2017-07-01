@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using static TLauncher.Common;
@@ -10,20 +9,24 @@ using static TLauncher.Unmanaged;
 
 namespace TLauncher {
     internal static class Replacer {
+        internal static bool Invalidate = false;
         internal static Dictionary<string, string> Database = new Dictionary<string, string>();
         internal static void InitializeHook(string[] Args) {
             Console.WriteLine("Initializing...");
 
-            StructReader Reader = new StructReader(Common.Setup, false, Encoding.UTF8);
+            StructReader Reader = new StructReader(Common.Setup);
 
             Config Setup = new Config();
             Reader.ReadStruct(ref Setup);
             Reader.Close();
 
+            Invalidate = Setup.Invalidate > 0;
+
             ProgProc = new Process() {
                 StartInfo = new ProcessStartInfo() {
                     Arguments = ParseArguments(Args),
-                    FileName = AppDomain.CurrentDomain.BaseDirectory + Setup.Executable
+                    FileName = AppDomain.CurrentDomain.BaseDirectory + Setup.Executable,
+                    WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
                 }
             };
 
@@ -70,6 +73,10 @@ namespace TLauncher {
 
             HandleRef href = new HandleRef(null, Handler);
             SendMessage(href, WM_SETTEXT, IntPtr.Zero, Translation);
+
+            if (Invalidate)
+                RedrawWindow(Handler, IntPtr.Zero, IntPtr.Zero, RDW_ERASE | RDW_INVALIDATE);
+
 #if DEBUG
             Console.WriteLine("Text Translated from \"{0}\" to \"{1}\"", Text, Translation);
 #endif
@@ -104,6 +111,9 @@ namespace TLauncher {
                 MenuInfo.dwTypeData = Translation;
 
                 Sucess = SetMenuItemInfo(Handler, i, true, ref MenuInfo);
+
+                if (Invalidate)
+                    RedrawWindow(Handler, IntPtr.Zero, IntPtr.Zero, RDW_ERASE | RDW_INVALIDATE);
 #if DEBUG
                 if (Sucess)
                     Console.WriteLine("Text Translated: {0}", Text);

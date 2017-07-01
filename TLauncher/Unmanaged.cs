@@ -44,6 +44,8 @@ namespace TLauncher {
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetConsoleWindow();
 
+        [DllImport("User32.dll")]
+        public static extern bool RedrawWindow(IntPtr hWnd, IntPtr rec, IntPtr recptr, uint Flags);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct MENUITEMINFO {
@@ -81,6 +83,8 @@ namespace TLauncher {
         public const uint MIIM_SUBMENU = 0x00000004;
         public const int SW_HIDE = 0;
         public const int SW_SHOW = 5;
+        public const int RDW_INVALIDATE = 0x0001;
+        public const int RDW_ERASE = 0x0004;
 
 
 
