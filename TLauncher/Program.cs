@@ -40,6 +40,12 @@ namespace TLauncher {
                         ContinueTL();
                         break;
 
+                    case "auto":
+                    case "google":
+                    case "mtl":
+                        AutoTL();
+                        break;
+
                     case "help":
                     case "?":
                         Console.WriteLine("Use the argument -Hook to append text to the translation");
@@ -47,6 +53,19 @@ namespace TLauncher {
                         break;
                 }
             }
+        }
+
+        private static void AutoTL() {
+            Replacer.MTL = true;
+            Console.WriteLine("Translate From:");
+            Replacer.From = Console.ReadLine();
+            Console.WriteLine("Translate To:");
+            Replacer.To = Console.ReadLine();
+            Console.WriteLine("Executable Path:");
+            string Exe = Console.ReadLine();
+            
+            Replacer.InitializeHook(new string[] { Exe });
+            Environment.Exit(0);
         }
 
         private static void ContinueTL() {

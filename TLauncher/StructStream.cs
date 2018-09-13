@@ -264,6 +264,7 @@ namespace AdvancedBinary {
 
         private bool BigEndian = false;
         private Encoding Encoding;
+
         public StructWriter(Stream Input, bool BigEndian = false, Encoding Encoding = null) : base(Input) {
             if (Encoding == null)
                 Encoding = Encoding.UTF8;
@@ -555,7 +556,7 @@ namespace AdvancedBinary {
             }
         }
 
-        private dynamic CreateArrayInstance(string TypeName, dynamic InitialLength) {
+        private dynamic CreateArrayInstance(string TypeName, dynamic InitialLength) {/*
             switch (TypeName) {
                 case Const.INT8:
                     return new sbyte[InitialLength];
@@ -581,7 +582,10 @@ namespace AdvancedBinary {
                     return new string[InitialLength];
                 default:
                     throw new Exception("Unk Variable Type");
-            }/*
+            }*/
+			Type ArrType = Type.GetType(TypeName);
+			return Array.CreateInstance(ArrType, InitialLength);
+			/*
             Type stringArrayType = Type.GetType(TypeName).MakeArrayType();
             return Activator.CreateInstance(stringArrayType, new object[] { InitialLength });*/
         }

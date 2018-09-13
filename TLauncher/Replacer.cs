@@ -2,23 +2,43 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using TLIB;
 using static TLauncher.Common;
 using static TLauncher.Unmanaged;
 
 namespace TLauncher {
     internal static class Replacer {
+        internal static bool MTL = false;
+        internal static string From = null;
+        internal static string To = null;
         internal static bool Invalidate = false;
         internal static Dictionary<string, string> Database = new Dictionary<string, string>();
         internal static void InitializeHook(string[] Args) {
             Console.WriteLine("Initializing...");
 
-            StructReader Reader = new StructReader(Common.Setup);
-
             Config Setup = new Config();
-            Reader.ReadStruct(ref Setup);
-            Reader.Close();
+            if (!MTL && System.IO.File.Exists(Common.Setup)) {
+                StructReader Reader = new StructReader(Common.Setup);
+                
+                Reader.ReadStruct(ref Setup);
+                Reader.Close();
+
+                if (Setup.TLs.LongLength - Setup.Strings.LongLength > 1)
+                    throw new Exception("Bad Configuration, The String and Tl Length missmatch.");
+
+                for (long i = 0; i < Setup.Strings.LongLength; i++)
+                    Database.Add(Setup.Strings[i], Setup.TLs[i]);
+            } else {
+                Setup = new Config() {
+                    Delay = 100,
+                    Invalidate = 0,
+                    Executable = Args.First()
+                };
+                Args = new string[0];
+            }
 
             Invalidate = Setup.Invalidate > 0;
 
@@ -29,12 +49,6 @@ namespace TLauncher {
                     WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
                 }
             };
-
-            if (Setup.TLs.LongLength - Setup.Strings.LongLength > 1)
-                throw new Exception("Bad Configuration, The String and Tl Length missmatch.");
-
-            for (long i = 0; i < Setup.Strings.LongLength; i++)
-                Database.Add(Setup.Strings[i], Setup.TLs[i]);
 
             Console.WriteLine("Starting Process...");
             ProgProc.Start();
@@ -64,10 +78,24 @@ namespace TLauncher {
             if (PID == ProgProc.Id) {
                 var CB = new CallBack(Replace);
                 EnumChildWindows(Handler, CB, IntPtr.Zero);
-            }            
-
-            if (!Database.ContainsKey(Text) || PID != ProgProc.Id)
+            }
+            if (PID != ProgProc.Id)
                 return true;
+
+            if (!Database.ContainsKey(Text)) {
+                if (!MTL)
+                    return true;
+                else {
+                    try {
+                        string TL = Google.Translate(Text, From, To);
+                        if (TL == Text || string.IsNullOrWhiteSpace(TL))
+                            return true;
+                        Database[Text] = TL;
+                    } catch {
+                        return true;
+                    }
+                }
+            }
 
             string Translation = Database[Text];
 
@@ -103,8 +131,23 @@ namespace TLauncher {
                 if (MenuInfo.hSubMenu != IntPtr.Zero)
                     ReplaceMenu(MenuInfo.hSubMenu);
 
-                if (!Sucess || !Database.ContainsKey(Text))
+                if (!Sucess)
                     continue;
+
+                if (!Database.ContainsKey(Text)) {
+                    if (!MTL)
+                        continue;
+                    else {
+                        try {
+                            string TL = Google.Translate(Text, From, To);
+                            if (TL == Text || string.IsNullOrWhiteSpace(TL))
+                                continue;
+                            Database[Text] = TL;
+                        } catch {
+                            continue;
+                        }
+                    }
+                }
 
                 string Translation = Database[Text];
 

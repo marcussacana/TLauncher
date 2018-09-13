@@ -59,5 +59,11 @@
   <ItemGroup>
     <None Include="app.manifest" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TLIB\TLIB.csproj">
+      <Project>{b7489af3-fad2-4d45-9746-cd72d9f22bff}</Project>
+      <Name>TLIB</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

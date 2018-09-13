@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TLauncher", "TLauncher\TLauncher.csproj", "{B5821828-4051-4C5F-A62B-3A6389877DBF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TLIB", "TLIB\TLIB.csproj", "{B7489AF3-FAD2-4D45-9746-CD72D9F22BFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +17,15 @@ Global
 		{B5821828-4051-4C5F-A62B-3A6389877DBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5821828-4051-4C5F-A62B-3A6389877DBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5821828-4051-4C5F-A62B-3A6389877DBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7489AF3-FAD2-4D45-9746-CD72D9F22BFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7489AF3-FAD2-4D45-9746-CD72D9F22BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7489AF3-FAD2-4D45-9746-CD72D9F22BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7489AF3-FAD2-4D45-9746-CD72D9F22BFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B2A827B-1749-48BE-8F97-022870F29A17}
 	EndGlobalSection
 EndGlobal
