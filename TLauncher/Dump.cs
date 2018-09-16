@@ -21,62 +21,77 @@ namespace TLauncher {
                 Console.WriteLine("You Want Invalidate the game window when translate something? Y/N");
                 Console.WriteLine("(Can increase the CPU/GPU usage if the window change the text constantly.)");
                 Invalidate = Console.ReadKey().KeyChar.ToString().ToUpper()[0] == 'Y';
-            }
+                Console.WriteLine();
 
-            Console.WriteLine("Initializing Executable...");
-            ProgProc = new Process() {
-                StartInfo = new ProcessStartInfo() {
-                    Arguments = ParseArguments(Args),
-                    FileName = AppDomain.CurrentDomain.BaseDirectory + Exe,
-                    WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
+                if (MTL) {
+                    Console.WriteLine("Translate From:");
+                    SourceLang = Console.ReadLine();
+                    Console.WriteLine("Translate To:");
+                    TargetLang = Console.ReadLine();
+                    Console.WriteLine("Executable Path:");
                 }
-            };
-
-            Console.WriteLine("Initializing Hook...");
-            HookEnabler();
-            Console.WriteLine("Dumping Text...");
-
-            StreamWriter Writer = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", false, Encoding.Unicode);
-
-            for (int i = 0; i < Texts.Count(); i++) {
-                string line = Tls.Count != 0 && i < Tls.Count ? Tls[i] : Texts[i];
-
-                Encode(ref line, true);
-                Writer.WriteLine(line);
             }
-            Writer.Flush();
-            Writer.Close();
 
-            Console.WriteLine("Dumped, Translate all lines and press a key to save the translation.");
-            Console.WriteLine("If have any string who you don't want translate, set it to :IGNORE:");
-            Console.ReadKey();
-            Console.WriteLine("Reading Translation...");
+            if (!MTL) {
 
-            Tls = new List<string>();
+                Console.WriteLine("Initializing Executable...");
+                ProgProc = new Process() {
+                    StartInfo = new ProcessStartInfo() {
+                        Arguments = ParseArguments(Args),
+                        FileName = AppDomain.CurrentDomain.BaseDirectory + Exe,
+                        WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
+                    }
+                };
 
-            TextReader Reader = new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", Encoding.Unicode);
+                Console.WriteLine("Initializing Hook...");
+                HookEnabler();
+                Console.WriteLine("Dumping Text...");
 
-            int ID = -1;
-            while (Reader.Peek() != -1) {
-                string Line = Reader.ReadLine();
-                Encode(ref Line, false);
+                StreamWriter Writer = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", false, Encoding.Unicode);
 
-                if (++ID >= Texts.Count)
-                    continue;
-                if (string.IsNullOrWhiteSpace(Line) || Line.Trim().ToLower() == ":ignore:") {
-                    Texts.RemoveAt(ID--);
-                    continue;
+                for (int i = 0; i < Texts.Count(); i++) {
+                    string line = Tls.Count != 0 && i < Tls.Count ? Tls[i] : Texts[i];
+
+                    Encode(ref line, true);
+                    Writer.WriteLine(line);
                 }
-                Tls.Add(Line);
-            }
+                Writer.Flush();
+                Writer.Close();
 
-            Reader.Close();
+                Console.WriteLine("Dumped, Translate all lines and press a key to save the translation.");
+                Console.WriteLine("If have any string who you don't want translate, set it to :IGNORE:");
+                Console.ReadKey();
+                Console.WriteLine("Reading Translation...");
+
+                Tls = new List<string>();
+
+                TextReader Reader = new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "ProgramText.txt", Encoding.Unicode);
+
+                int ID = -1;
+                while (Reader.Peek() != -1) {
+                    string Line = Reader.ReadLine();
+                    Encode(ref Line, false);
+
+                    if (++ID >= Texts.Count)
+                        continue;
+                    if (string.IsNullOrWhiteSpace(Line) || Line.Trim().ToLower() == ":ignore:") {
+                        Texts.RemoveAt(ID--);
+                        continue;
+                    }
+                    Tls.Add(Line);
+                }
+
+                Reader.Close();
+            }
 
             Console.WriteLine("Generating Configuration...");
 
             Config LauncherData = new Config() {
                 Signature = "TLLD",
                 Executable = Exe,
+                MTL = (byte)(MTL ? 1 : 0),
+                SourceLang = SourceLang,
+                TargetLang = TargetLang,
                 Strings = Texts.ToArray(),
                 TLs = Tls.ToArray(),
                 Delay = Delay,
@@ -148,6 +163,9 @@ namespace TLauncher {
 
         internal static List<string> Texts = new List<string>();
         internal static string Exe;
+        internal static string SourceLang;
+        internal static string TargetLang;
+        internal static bool MTL = false;
         internal static int Delay;
         internal static List<string> Tls = new List<string>();
         internal static bool Invalidate;

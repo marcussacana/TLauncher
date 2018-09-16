@@ -80,6 +80,13 @@ namespace TLauncher {
 
             public byte Invalidate;
 
+            public byte MTL;
+
+            [CString()]
+            public string SourceLang;
+            [CString()]
+            public string TargetLang;
+
             [CString()]
             public string Executable;
 

@@ -20,27 +20,26 @@ namespace TLauncher {
             Console.WriteLine("Initializing...");
 
             Config Setup = new Config();
-            if (!MTL && System.IO.File.Exists(Common.Setup)) {
-                StructReader Reader = new StructReader(Common.Setup);
-                
-                Reader.ReadStruct(ref Setup);
-                Reader.Close();
-
-                if (Setup.TLs.LongLength - Setup.Strings.LongLength > 1)
-                    throw new Exception("Bad Configuration, The String and Tl Length missmatch.");
-
-                for (long i = 0; i < Setup.Strings.LongLength; i++)
-                    Database.Add(Setup.Strings[i], Setup.TLs[i]);
-            } else {
-                Setup = new Config() {
-                    Delay = 100,
-                    Invalidate = 0,
-                    Executable = Args.First()
-                };
-                Args = new string[0];
+            if (!System.IO.File.Exists(Common.Setup)) {
+                Console.WriteLine("Config Data Not Found");
+                return;
             }
 
+            using (StructReader Reader = new StructReader(Common.Setup)) {
+                Reader.ReadStruct(ref Setup);
+                Reader.Close();
+            }
+
+            MTL = Setup.MTL > 0;
+            From = Setup.SourceLang;
+            To = Setup.TargetLang;
             Invalidate = Setup.Invalidate > 0;
+
+            if (Setup.TLs.LongLength != Setup.Strings.LongLength)
+                throw new Exception("Bad Configuration, The String and Tl Length missmatch.");
+
+            for (long i = 0; i < Setup.Strings.LongLength; i++)
+                Database.Add(Setup.Strings[i], Setup.TLs[i]);
 
             ProgProc = new Process() {
                 StartInfo = new ProcessStartInfo() {
@@ -54,7 +53,7 @@ namespace TLauncher {
             ProgProc.Start();
 
             Console.WriteLine("Wainting Main Window Open...");
-            while (ProgProc.MainWindowHandle == IntPtr.Zero) 
+            while (ProgProc.MainWindowHandle == IntPtr.Zero)
                 System.Threading.Thread.Sleep(100);
 
             Console.WriteLine("Initializing...");
@@ -66,6 +65,17 @@ namespace TLauncher {
 
                 IntPtr Handler = GetMenu(ProgProc.MainWindowHandle);
                 ReplaceMenu(Handler);
+            }
+
+            if (MTL) {
+                Console.WriteLine("Updating Database...");
+                Setup.Strings = Database.Keys.ToArray();
+                Setup.TLs = Database.Values.ToArray();
+
+                using (StructWriter Writer = new StructWriter(Common.Setup)) {
+                    Writer.WriteStruct(ref Setup);
+                    Writer.Close();
+                }
             }
         }
         private static bool Replace(IntPtr Handler, int Paramters) {

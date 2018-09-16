@@ -56,15 +56,12 @@ namespace TLauncher {
         }
 
         private static void AutoTL() {
-            Replacer.MTL = true;
-            Console.WriteLine("Translate From:");
-            Replacer.From = Console.ReadLine();
-            Console.WriteLine("Translate To:");
-            Replacer.To = Console.ReadLine();
-            Console.WriteLine("Executable Path:");
-            string Exe = Console.ReadLine();
-            
-            Replacer.InitializeHook(new string[] { Exe });
+            if (File.Exists(Setup))
+                return;
+            Console.WriteLine("Welcome to the TLauncher");
+            Console.WriteLine("Launcher Data not found... Starting Creation Mode...");
+            Dumper.MTL = true;
+            Dumper.SetupLauncher(null);
             Environment.Exit(0);
         }
 
